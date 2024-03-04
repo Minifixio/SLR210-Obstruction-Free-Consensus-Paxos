@@ -7,6 +7,27 @@ import com.example.synod.message.Membership;
 
 import java.util.*;
 
+/**
+ * TODO :
+ * - Créer les types de messages :
+ *    - Read
+ *    - Abort
+ *    - Gather
+ *    - Decide
+ *    - Impose
+ *    - Ack
+ *    - Decide
+ * 
+ * - Créer les différents handles selon le type de message
+ * 
+ * - Créer le système de failure
+ * 
+ * - Faire les tests de fonctionnement
+ * 
+ * 
+ */
+ 
+
 public class Main {
     public static int N = 3;
     public static void main(String[] args) throws InterruptedException {
