@@ -7,8 +7,14 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.Pair;
 
+import com.example.synod.message.Abort;
+import com.example.synod.message.Ack;
+import com.example.synod.message.Decide;
+import com.example.synod.message.Gather;
+import com.example.synod.message.Impose;
 import com.example.synod.message.Launch;
 import com.example.synod.message.Membership;
+import com.example.synod.message.Read;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -52,11 +58,34 @@ public class Process extends UntypedAbstractActor {
         }
     }
 
+    // private void broadcast (Message message) {
+    //     // create super class for all message type (add extend Message for all messages types)
+    // }
+
     private void propose(Boolean v) {
         log.info(this + " - propose(" + v + ")");
         proposal = v;
         ballot += n;
         initState();
+    }
+
+    private void receiveRead(Read message) {
+
+    }
+
+    private void receiveAbort(Abort message) {
+    }
+
+    private void receiveGather(Gather message) {
+    }
+
+    private void receiveImpose(Impose message) {
+    }
+
+    private void receiveDecide(Decide message) {
+    }
+
+    private void receiveAck(Ack message) {
     }
 
     public void onReceive(Object message) throws Throwable {
