@@ -29,7 +29,7 @@ public class Process extends UntypedAbstractActor {
     private int ballot;
     private int readballot;
     private int imposeballot;
-    private Boolean estiamte;
+    private Boolean estimate;
     private ArrayList<Pair<Boolean, Integer>> states;
 
     /**
@@ -46,7 +46,7 @@ public class Process extends UntypedAbstractActor {
         this.proposal = null;
         this.readballot = 0;
         this.imposeballot = i - n;
-        this.estiamte = null;
+        this.estimate = null;
         this.initState();
 
     }
@@ -70,22 +70,54 @@ public class Process extends UntypedAbstractActor {
     }
 
     private void receiveRead(Read message) {
+        log.info(this + " - read received");
+        int newBallot = message.getBallot();
+        if (message.getBallot() < readballot) {
+            getSender().tell(new Abort(newBallot), getSelf());
+        } else {
+            readballot = message.getBallot();
+            getSender().tell(new Gather(newBallot, imposeballot, estimate, i), getSelf());
+        }
 
     }
 
+    // TODO : Handle the abort case
     private void receiveAbort(Abort message) {
+        log.info(this + " - abort received");
+        return;
     }
 
     private void receiveGather(Gather message) {
+        log.info(this + " - gather received");
+        states.set(message.getSenderId(), new Pair<Boolean, Integer>(message.getEstimate(), message.getEstimateBallot()));
     }
 
     private void receiveImpose(Impose message) {
+        int newBallot = message.getBallot();
+        if (readballot > newBallot || imposeballot > newBallot) {
+            getSender().tell(new Abort(newBallot), getSelf());
+        } else {
+            estimate = message.getProposal();
+            imposeballot = newBallot;
+            getSender().tell(new Ack(newBallot), getSelf());
+        }
     }
 
+    // TODO : Handle the return case
     private void receiveDecide(Decide message) {
+        // send a Decide message to all processes
+        for (ActorRef actor : processes.references) {
+            actor.tell(message, getSelf());
+        }
+        return;
     }
 
     private void receiveAck(Ack message) {
+        // send a Decide message to all processes
+        Decide decide = new Decide(proposal);
+        for (ActorRef actor : processes.references) {
+            actor.tell(decide, getSelf());
+        }
     }
 
     public void onReceive(Object message) throws Throwable {
