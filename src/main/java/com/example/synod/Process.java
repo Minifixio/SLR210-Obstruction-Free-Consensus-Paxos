@@ -9,6 +9,7 @@ import akka.japi.Pair;
 
 import com.example.synod.message.Abort;
 import com.example.synod.message.Ack;
+import com.example.synod.message.Crash;
 import com.example.synod.message.Decide;
 import com.example.synod.message.Gather;
 import com.example.synod.message.Impose;
@@ -32,14 +33,18 @@ public class Process extends UntypedAbstractActor {
     private Boolean estimate;
     private ArrayList<Pair<Boolean, Integer>> states;
 
+    private Boolean faultProne;
+    private Boolean crashed;
+    private float crashProbability;
+
     /**
      * Static method to create an actor
      */
-    public static Props createActor(int n, int i) {
-        return Props.create(Process.class, () -> new Process(n, i));
+    public static Props createActor(int n, int i, float crashProbability) {
+        return Props.create(Process.class, () -> new Process(n, i, crashProbability));
     }
 
-    public Process(int n, int i) {
+    public Process(int n, int i, float crashProbability) {
         this.n = n;
         this.i = i;
         this.ballot = i - n;
@@ -47,8 +52,10 @@ public class Process extends UntypedAbstractActor {
         this.readballot = 0;
         this.imposeballot = i - n;
         this.estimate = null;
+        this.faultProne = false;
+        this.crashed = false;
+        this.crashProbability = crashProbability;
         this.initState();
-
     }
 
     private void initState() {
@@ -67,6 +74,9 @@ public class Process extends UntypedAbstractActor {
         proposal = v;
         ballot += n;
         initState();
+        for (ActorRef actor : processes.references) {
+            actor.tell(new Read(ballot), getSelf());
+        }
     }
 
     private void receiveRead(Read message) {
@@ -103,13 +113,13 @@ public class Process extends UntypedAbstractActor {
         }
     }
 
-    // TODO : Handle the return case
+    // TODO : Handle how to handle a decide message
     private void receiveDecide(Decide message) {
         // send a Decide message to all processes
         for (ActorRef actor : processes.references) {
             actor.tell(message, getSelf());
         }
-        return;
+        log.info(this + " - decided " + message.getProposal());
     }
 
     private void receiveAck(Ack message) {
@@ -120,14 +130,47 @@ public class Process extends UntypedAbstractActor {
         }
     }
 
+    private void crash() {
+        if (Math.random() < crashProbability) {
+            log.info(this + " - CRASHED");
+            crashed = true;
+        }
+    }
+
     public void onReceive(Object message) throws Throwable {
+
+        // check if the process is fault prone and trigger a possible crash
+        if (faultProne) {
+            crash();
+        }
+        // if the process is crashed, do not process any message
+        if (crashed) {
+            return;
+        }
+
+        // handle the different types of messages
         if (message instanceof Membership) {
-            log.info(this + " - membership received");
             Membership m = (Membership) message;
             processes = m;
         } else if (message instanceof Launch) {
-            log.info(this + " - launch received");
-            propose(true);
+            // pick a random value and propose it
+            Random rand = new Random();
+            Boolean v = rand.nextBoolean();
+            propose(v);
+        } else if (message instanceof Read) {
+            receiveRead((Read) message);
+        } else if (message instanceof Abort) {
+            receiveAbort((Abort) message);
+        } else if (message instanceof Gather) {
+            receiveGather((Gather) message);
+        } else if (message instanceof Impose) {
+            receiveImpose((Impose) message);
+        } else if (message instanceof Decide) {
+            receiveDecide((Decide) message);
+        } else if (message instanceof Ack) {
+            receiveAck((Ack) message);
+        } else if (message instanceof Crash && !crashed) {
+            faultProne = true;
         }
     }
 

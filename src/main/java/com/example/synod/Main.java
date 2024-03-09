@@ -30,6 +30,7 @@ import java.util.*;
 
 public class Main {
     public static int N = 3;
+    public static float CRASH_PROBABILITY = 0.1f;
     public static void main(String[] args) throws InterruptedException {
         // Instantiate an actor system
         final ActorSystem system = ActorSystem.create("system");
@@ -38,7 +39,7 @@ public class Main {
         ArrayList<ActorRef> processes = new ArrayList<>();
 
         for (int i = 0; i < N; i++) {
-            final ActorRef a = system.actorOf(Process.createActor(N, i));
+            final ActorRef a = system.actorOf(Process.createActor(N, i, CRASH_PROBABILITY));
             processes.add(a);
         }
 
