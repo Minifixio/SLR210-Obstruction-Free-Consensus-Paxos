@@ -170,6 +170,7 @@ public class Process extends UntypedAbstractActor {
         }
     }
 
+    // TODO: Maybe make messages extend a super class
     public void onReceive(Object message) throws Throwable {
 
         // check if the process is fault prone and trigger a possible crash
