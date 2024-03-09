@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Process extends UntypedAbstractActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this);// Logger attached to actor
+    private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this); // Logger attached to actor
 
     private int n;// number of processes
     private int i;// id of current process
@@ -61,7 +61,7 @@ public class Process extends UntypedAbstractActor {
     private void initState() {
         this.states = new ArrayList<Pair<Boolean, Integer>>();
         for (int index = 0; index < this.n; index++) {
-            this.states.add(new Pair<Boolean, Integer>(null, 0));
+            this.states.add(null);
         }
     }
 
@@ -75,17 +75,20 @@ public class Process extends UntypedAbstractActor {
         ballot += n;
         initState();
         for (ActorRef actor : processes.references) {
-            actor.tell(new Read(ballot), getSelf());
+            // avoid sending a message to itself
+            if (actor != getSelf()) {
+                actor.tell(new Read(ballot), getSelf());
+            }
         }
     }
 
     private void receiveRead(Read message) {
         log.info(this + " - read received");
         int newBallot = message.getBallot();
-        if (message.getBallot() < readballot) {
+        if (newBallot < readballot) {
             getSender().tell(new Abort(newBallot), getSelf());
         } else {
-            readballot = message.getBallot();
+            readballot = newBallot;
             getSender().tell(new Gather(newBallot, imposeballot, estimate, i), getSelf());
         }
 
@@ -100,9 +103,39 @@ public class Process extends UntypedAbstractActor {
     private void receiveGather(Gather message) {
         log.info(this + " - gather received");
         states.set(message.getSenderId(), new Pair<Boolean, Integer>(message.getEstimate(), message.getEstimateBallot()));
+        log.info(this + " - states : " + states);
+        
+        // check if the process has received enough messages
+        int count = 0;
+        // count the non-null states
+        for (Pair<Boolean, Integer> state : states) {
+            if (state != null) {
+                count++;
+            }
+        }
+        if (count > n / 2) {
+            log.info(this + " - received enough messages");
+            int maxBallot = 0;
+            Boolean maxEstimate = null;
+            for (Pair<Boolean, Integer> state : states) {
+                if (state != null && state.second() > maxBallot) {
+                    maxBallot = state.second();
+                    maxEstimate = state.first();
+                }
+            }
+            if (maxEstimate != null) {
+                proposal = maxEstimate;
+            }
+
+            initState();
+            for (ActorRef actor : processes.references) {
+                actor.tell(new Impose(ballot, proposal, i), getSelf());
+            }
+        }
     }
 
     private void receiveImpose(Impose message) {
+        log.info(this + " - impose received");
         int newBallot = message.getBallot();
         if (readballot > newBallot || imposeballot > newBallot) {
             getSender().tell(new Abort(newBallot), getSelf());
