@@ -2,16 +2,8 @@ package com.example.synod;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
-import scala.concurrent.Await;
-import scala.concurrent.Future;
 
-import com.example.synod.message.Crash;
-import com.example.synod.message.Decide;
-import com.example.synod.message.Hold;
-import com.example.synod.message.Launch;
-import com.example.synod.message.Membership;
+import com.example.synod.message.*;
 
 import scala.concurrent.duration.Duration;
 import java.util.*;
@@ -20,8 +12,9 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * TODO :
- *  
  * - Faire les tests de fonctionnement
+ * - Dans le main attendre la fin d'une execution avant d'en lancer une autre ou enlever les boulces for et préciser les params dans args
+ * voir readme.md!
  */
  
 
@@ -36,6 +29,7 @@ public class Main {
         int[] systemSizes = new int[]{3, 10, 100};
     
         // Perform the experiment for different system sizes and leader election times
+
         for (int i = 0; i < systemSizes.length; i++) {
             int N = systemSizes[i];
             for (float alpha : new float[]{0f, 0.1f, 1f}) {
