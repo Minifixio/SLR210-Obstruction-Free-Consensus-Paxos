@@ -1,6 +1,6 @@
 package com.example.synod.message;
 
-public class Impose {
+public class Impose implements Message {
     private int ballot;
     private Boolean proposal;
     private int senderId;

@@ -7,16 +7,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.Pair;
 
-import com.example.synod.message.Abort;
-import com.example.synod.message.Ack;
-import com.example.synod.message.Crash;
-import com.example.synod.message.Decide;
-import com.example.synod.message.Gather;
-import com.example.synod.message.Hold;
-import com.example.synod.message.Impose;
-import com.example.synod.message.Launch;
-import com.example.synod.message.Membership;
-import com.example.synod.message.Read;
+import com.example.synod.message.*;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -72,6 +63,13 @@ public class Process extends UntypedAbstractActor {
         this.initState();
     }
 
+    private void broadcast(Message message) {
+        for (ActorRef actor : processes.references) {
+            if (actor != getSelf())
+                actor.tell(message, getSelf());
+        }
+    }
+
     private void initState() {
         this.states = new ArrayList<Pair<Boolean, Integer>>();
         for (int index = 0; index < this.n; index++) {
@@ -87,33 +85,26 @@ public class Process extends UntypedAbstractActor {
         return onHold;
     }
 
-    // private void broadcast (Message message) {
-    //     // create super class for all message type (add extend Message for all messages types)
-    // }
-
     private void propose(Boolean v) {
 
         if (onHold) {
             return;
         }
-        
-        if (debug) log.info(this + " - propose(" + v + ")");
+
+        if (debug)
+            log.info(this + " - propose(" + v + ")");
 
         proposal = v;
         ballot += n;
         initState();
-        for (ActorRef actor : processes.references) {
-            // avoid sending a message to itself
-            if (actor != getSelf()) {
-                actor.tell(new Read(ballot), getSelf());
-            }
-        }
+        broadcast(new Read(ballot));
     }
 
     private void receiveRead(Read message) {
-        if (debug)  log.info(this + " - read received");
+        if (debug)
+            log.info(this + " - read received");
         int newBallot = message.getBallot();
-        if (newBallot < readballot) {
+        if (newBallot < readballot || imposeballot > newBallot) {
             getSender().tell(new Abort(newBallot), getSelf());
         } else {
             readballot = newBallot;
@@ -122,17 +113,21 @@ public class Process extends UntypedAbstractActor {
 
     }
 
-    // TODO : Handle the abort case
+    // TODO : check if the implementation is right, proposing the same value after getting abort
     private void receiveAbort(Abort message) {
-        if (debug) log.info(this + " - abort received");
-        return;
+        if (debug)
+            log.info(this + " - abort received");
+        propose(proposal);
     }
 
     private void receiveGather(Gather message) {
-        if (debug) log.info(this + " - gather received");
-        states.set(message.getSenderId(), new Pair<Boolean, Integer>(message.getEstimate(), message.getEstimateBallot()));
-        if (debug) log.info(this + " - states : " + states);
-        
+        if (debug)
+            log.info(this + " - gather received");
+        states.set(message.getSenderId(),
+                new Pair<Boolean, Integer>(message.getEstimate(), message.getEstimateBallot()));
+        if (debug)
+            log.info(this + " - states : " + states);
+
         // check if the process has received enough messages
         int count = 0;
         // count the non-null states
@@ -142,7 +137,8 @@ public class Process extends UntypedAbstractActor {
             }
         }
         if (count > n / 2) {
-            if (debug) log.info(this + " - received enough messages");
+            if (debug)
+                log.info(this + " - received enough messages");
             int maxBallot = 0;
             Boolean maxEstimate = null;
             for (Pair<Boolean, Integer> state : states) {
@@ -156,14 +152,13 @@ public class Process extends UntypedAbstractActor {
             }
 
             initState();
-            for (ActorRef actor : processes.references) {
-                actor.tell(new Impose(ballot, proposal, i), getSelf());
-            }
+            broadcast(new Impose(ballot, proposal, i));
         }
     }
 
     private void receiveImpose(Impose message) {
-        if (debug) log.info(this + " - impose received");
+        if (debug)
+            log.info(this + " - impose received");
         int newBallot = message.getBallot();
         if (readballot > newBallot || imposeballot > newBallot) {
             getSender().tell(new Abort(newBallot), getSelf());
@@ -174,38 +169,39 @@ public class Process extends UntypedAbstractActor {
         }
     }
 
-    // TODO : Handle how to handle a decide message
     private void receiveDecide(Decide message) {
 
-        if (decided) {
-            return;
-        }
-
-        // send a Decide message to all processes
+        
         decided = true;
 
-        for (ActorRef actor : processes.references) {
-            actor.tell(message, getSelf());
-        }
+        // send a Decide message to all processes
+        broadcast(message);
         log.info(this + " - decided " + message.getProposal() + " in " + (System.currentTimeMillis() - initTime) + "ms");
     }
 
     private void receiveAck(Ack message) {
-        // if majority of ack received, send a Decide message to all processes 
+        // if majority of ack received, send a Decide message to all processes
         ackReceived++;
 
         if (ackReceived > n / 2) {
             ackReceived = 0;
-            if (debug) log.info(this + " - majority of ack received");
+            if (debug)
+                log.info(this + " - majority of ack received");
+            decided = true;
+
+            // TODO : stop execution and output the time (System.currentTimeMillis() - initTime) to the main or a file
+
+            log.info(this + " - decided " + proposal + " in " + (System.currentTimeMillis() - initTime) + "ms");
+
+
             Decide decide = new Decide(proposal);
-            for (ActorRef actor : processes.references) {
-                actor.tell(decide, getSelf());
-            }
+            broadcast(decide);
         }
     }
 
     private void receiveLaunch() {
-        if (debug) log.info(this + " - launch received");
+        if (debug)
+            log.info(this + " - launch received");
         // pick a random value and propose it
         Random rand = new Random();
         Boolean v = rand.nextBoolean();
@@ -214,13 +210,13 @@ public class Process extends UntypedAbstractActor {
 
     private void crash() {
         if (Math.random() < crashProbability) {
-            if (debug) log.info(this + " - CRASHED");
+            if (debug)
+                log.info(this + " - CRASHED");
             crashed = true;
         }
     }
 
 
-    // TODO: Maybe make messages extend a super class
     public void onReceive(Object message) throws Throwable {
 
         // check if the process has already decided

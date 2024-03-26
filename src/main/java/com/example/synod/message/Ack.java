@@ -1,6 +1,6 @@
 package com.example.synod.message;
 
-public class Ack {
+public class Ack implements Message {
     private int ballot;
 
     public Ack (int ballot) {

@@ -1,4 +1,4 @@
 package com.example.synod.message;
 
-public class Hold {
+public class Hold implements Message {
 }
