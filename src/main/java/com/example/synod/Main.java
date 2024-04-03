@@ -21,8 +21,8 @@ import java.util.concurrent.TimeoutException;
 public class Main {
 
     public static int N = 100;
-    public static float alpha = 0.1f;
-    public static int TLE = 100;
+    public static float alpha = 0f;
+    public static int TLE = 500;
     public static int f = 49;
 
     public static void main(String[] args) throws InterruptedException, TimeoutException {
@@ -58,7 +58,7 @@ public class Main {
 
         // Assume that the first process is the leader
         ActorRef leader = processes.get(0);
-        System.out.println("The leader is process " + leader.path().name());
+        System.out.println("The leader is process " + leader.path().toString());
 
         // Crash the f last processes
         for (int j = N - f; j < N; j++) {
@@ -72,6 +72,8 @@ public class Main {
 
         // Send a hold message in tle to all processes except the leader
         // We start at j = 1 because the leader is the first process
+        // Sending a message to the leader for logs
+        system.scheduler().scheduleOnce(Duration.create(TLE, TimeUnit.MILLISECONDS), leader, new Leader(), system.dispatcher(), null);
         for (int j = 1; j < N; j++) {
             system.scheduler().scheduleOnce(Duration.create(TLE, TimeUnit.MILLISECONDS), processes.get(j), new Hold(), system.dispatcher(), null);
         }

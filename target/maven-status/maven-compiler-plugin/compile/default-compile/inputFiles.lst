@@ -1,4 +1,16 @@
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Leader.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Read.java
 /Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Membership.java
-/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Launch.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Ack.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Init.java
 /Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/Main.java
 /Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/Process.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Impose.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Gather.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/UntypedActor.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Message.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Decide.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Abort.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Hold.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Launch.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Crash.java

@@ -121,10 +121,16 @@ public class Process extends UntypedAbstractActor {
 
     }
 
+
+    // TODO : handle exception from thread.sleep() 
     private void receiveAbort(Abort message) {
         if (debug)
             log.info(this + " - abort received");
-
+        try {
+            Thread.sleep(5);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
         int currBallot = message.getBallot();
         if (currBallot != previousAbortedBallot && !decided) {
             previousAbortedBallot = currBallot;
@@ -227,9 +233,16 @@ public class Process extends UntypedAbstractActor {
         }
     }
 
+    private void handleLeader () {
+        log.info(this + " - Leader chosen in " + (System.currentTimeMillis() - initTime) + "ms");
+    }
+
 
     public void onReceive(Object message) throws Throwable {
-
+        if (message instanceof Leader) {
+            handleLeader();
+            return;
+        }
         // check if the process has already decided
         if (decided) {
             return;
