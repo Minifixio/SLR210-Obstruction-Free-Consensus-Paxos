@@ -10,6 +10,7 @@
 /Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/UntypedActor.java
 /Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Message.java
 /Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Decide.java
+/Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/ContinueAbort.java
 /Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Abort.java
 /Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Hold.java
 /Users/ad/Desktop/2a-telecom/SLR/SLR210/synod/src/main/java/com/example/synod/message/Launch.java

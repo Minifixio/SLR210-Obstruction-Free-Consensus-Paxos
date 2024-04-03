@@ -7,10 +7,14 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.Pair;
 
+import scala.concurrent.duration.Duration;
+
+
 import com.example.synod.message.*;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class Process extends UntypedAbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this); // Logger attached to actor
@@ -122,15 +126,21 @@ public class Process extends UntypedAbstractActor {
     }
 
 
-    // TODO : handle exception from thread.sleep() 
+    // Waiting 10ms before proposing
     private void receiveAbort(Abort message) {
         if (debug)
             log.info(this + " - abort received");
-        try {
-            Thread.sleep(5);
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+        getContext().getSystem().scheduler().scheduleOnce(
+            Duration.create(1, TimeUnit.MILLISECONDS),
+            getSelf(),
+            new ContinueAbort(message.getBallot()),
+            getContext().dispatcher(),
+            getSelf()
+        ); 
+    }
+
+    // Reproposing after receiving the request from the schduler
+    private void receiveContinueAbort (ContinueAbort message) {
         int currBallot = message.getBallot();
         if (currBallot != previousAbortedBallot && !decided) {
             previousAbortedBallot = currBallot;
@@ -281,6 +291,8 @@ public class Process extends UntypedAbstractActor {
             faultProne = true;
         } else if (message instanceof Hold) {
             onHold = true;
+        } else if (message instanceof ContinueAbort) {
+            receiveContinueAbort((ContinueAbort) message);
         } else {
             unhandled(message);
         }

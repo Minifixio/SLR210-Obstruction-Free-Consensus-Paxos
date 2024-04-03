@@ -21,7 +21,7 @@ import java.util.concurrent.TimeoutException;
 public class Main {
 
     public static int N = 100;
-    public static float alpha = 0f;
+    public static float alpha = 1f;
     public static int TLE = 500;
     public static int f = 49;
 
