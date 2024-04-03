@@ -7,14 +7,13 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.japi.Pair;
 
-import scala.concurrent.duration.Duration;
 
 
 import com.example.synod.message.*;
 
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
+
 
 public class Process extends UntypedAbstractActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().getSystem(), this); // Logger attached to actor
@@ -53,7 +52,7 @@ public class Process extends UntypedAbstractActor {
         this.n = n;
         this.i = i;
         this.ballot = i - n;
-        this.previousAbortedBallot = -(n+1);
+        this.previousAbortedBallot = -(n + 1);
         this.proposal = null;
         this.readballot = 0;
         this.imposeballot = i - n;
@@ -125,24 +124,13 @@ public class Process extends UntypedAbstractActor {
 
     }
 
-
     // Waiting 10ms before proposing
     private void receiveAbort(Abort message) {
         if (debug)
             log.info(this + " - abort received");
-        getContext().getSystem().scheduler().scheduleOnce(
-            Duration.create(1, TimeUnit.MILLISECONDS),
-            getSelf(),
-            new ContinueAbort(message.getBallot()),
-            getContext().dispatcher(),
-            getSelf()
-        ); 
-    }
-
-    // Reproposing after receiving the request from the schduler
-    private void receiveContinueAbort (ContinueAbort message) {
         int currBallot = message.getBallot();
-        if (currBallot != previousAbortedBallot && !decided) {
+
+        if (currBallot > previousAbortedBallot && !decided) {
             previousAbortedBallot = currBallot;
 
             if (!onHold) {
@@ -155,7 +143,8 @@ public class Process extends UntypedAbstractActor {
         if (debug)
             log.info(this + " - gather received");
 
-        states.set(message.getSenderId(), new Pair<Boolean, Integer>(message.getEstimate(), message.getEstimateBallot()));
+        states.set(message.getSenderId(),
+                new Pair<Boolean, Integer>(message.getEstimate(), message.getEstimateBallot()));
 
         // check if the process has received enough messages
         int count = 0;
@@ -204,7 +193,8 @@ public class Process extends UntypedAbstractActor {
 
         decided = true;
         broadcast(message);
-        log.info(this + " - decided " + message.getProposal() + " in " + (System.currentTimeMillis() - initTime) + "ms");
+        log.info(
+                this + " - decided " + message.getProposal() + " in " + (System.currentTimeMillis() - initTime) + "ms");
     }
 
     private void receiveAck(Ack message) {
@@ -243,10 +233,9 @@ public class Process extends UntypedAbstractActor {
         }
     }
 
-    private void handleLeader () {
+    private void handleLeader() {
         log.info(this + " - Leader chosen in " + (System.currentTimeMillis() - initTime) + "ms");
     }
-
 
     public void onReceive(Object message) throws Throwable {
         if (message instanceof Leader) {
@@ -291,8 +280,6 @@ public class Process extends UntypedAbstractActor {
             faultProne = true;
         } else if (message instanceof Hold) {
             onHold = true;
-        } else if (message instanceof ContinueAbort) {
-            receiveContinueAbort((ContinueAbort) message);
         } else {
             unhandled(message);
         }

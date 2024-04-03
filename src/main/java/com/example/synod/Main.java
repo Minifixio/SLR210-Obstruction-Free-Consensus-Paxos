@@ -12,18 +12,19 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * TODO :
- * - Faire les tests de fonctionnement
- * - Dans le main attendre la fin d'une execution avant d'en lancer une autre ou enlever les boulces for et préciser les params dans args
- * voir readme.md!
+ * - Automatiser l'execution
+ * - Ecrire le readme
+ * - Faire le rapport
  */
  
 
 public class Main {
 
-    public static int N = 100;
+    public static int N = 10;
     public static float alpha = 1f;
-    public static int TLE = 500;
-    public static int f = 49;
+    public static int TLE = 10;
+    public static int f = 4;
+    public static boolean debug = false;
 
     public static void main(String[] args) throws InterruptedException, TimeoutException {
         // Instantiate an actor system
@@ -38,7 +39,7 @@ public class Main {
         // Create processes and give each process a view of all the other processes
         ArrayList<ActorRef> processes = new ArrayList<>();
         for (int j = 0; j < N; j++) {
-            final ActorRef a = system.actorOf(Process.createActor(N, j, alpha, false));
+            final ActorRef a = system.actorOf(Process.createActor(N, j, alpha, debug));
             processes.add(a);
         }
 
@@ -65,11 +66,6 @@ public class Main {
             processes.get(j).tell(new Crash(), ActorRef.noSender());
         }
 
-        // Send Launch message to all processes
-        for (ActorRef actor : processes) {
-            actor.tell(new Launch(), ActorRef.noSender());
-        }
-
         // Send a hold message in tle to all processes except the leader
         // We start at j = 1 because the leader is the first process
         // Sending a message to the leader for logs
@@ -77,7 +73,13 @@ public class Main {
         for (int j = 1; j < N; j++) {
             system.scheduler().scheduleOnce(Duration.create(TLE, TimeUnit.MILLISECONDS), processes.get(j), new Hold(), system.dispatcher(), null);
         }
-       
+
+        // Send Launch message to all processes
+        for (ActorRef actor : processes) {
+            actor.tell(new Launch(), ActorRef.noSender());
+        }
+
+
         // Terminate the actor system
         // system.terminate();
     }
