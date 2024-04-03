@@ -20,10 +20,10 @@ import java.util.concurrent.TimeoutException;
 
 public class Main {
 
-    public static int N = 10;
-    public static float alpha = 1f;
-    public static int TLE = 10;
-    public static int f = 4;
+    public static int N = 100;
+    public static float alpha = 0.1f;
+    public static int TLE = 1000;
+    public static int f = 49;
     public static boolean debug = false;
 
     public static void main(String[] args) throws InterruptedException, TimeoutException {
