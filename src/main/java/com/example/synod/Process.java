@@ -124,7 +124,7 @@ public class Process extends UntypedAbstractActor {
 
     }
 
-    // Waiting 10ms before proposing
+
     private void receiveAbort(Abort message) {
         if (debug)
             log.info(this + " - abort received");
@@ -190,11 +190,11 @@ public class Process extends UntypedAbstractActor {
     private void receiveDecide(Decide message) {
         if (debug)
             log.info(this + " - decide received");
-
         decided = true;
+
         broadcast(message);
-        log.info(
-                this + " - decided " + message.getProposal() + " in " + (System.currentTimeMillis() - initTime) + "ms");
+        if (debug)
+            log.info(this + " - decided " + message.getProposal() + " in " + (System.currentTimeMillis() - initTime) + "ms");
     }
 
     private void receiveAck(Ack message) {
@@ -211,6 +211,10 @@ public class Process extends UntypedAbstractActor {
 
             log.info(this + " - decided " + proposal + " in " + (System.currentTimeMillis() - initTime) + "ms");
 
+            // Stopping the execution after the first process decide, the others will decide the same value after deciding the "decide" message
+            // Run the code in debug mode to see the full execution
+            if (!debug) System.exit(0);
+            
             Decide decide = new Decide(proposal);
             broadcast(decide);
         }
@@ -218,7 +222,6 @@ public class Process extends UntypedAbstractActor {
 
     private void receiveLaunch() {
         if (debug)
-            log.info(this + " - launch received " + (System.currentTimeMillis() - initTime));
             log.info(this + " - launch received " + (System.currentTimeMillis() - initTime));
         // pick a random value and propose it
         Random rand = new Random();
