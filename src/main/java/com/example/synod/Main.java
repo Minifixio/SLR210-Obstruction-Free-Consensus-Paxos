@@ -20,13 +20,39 @@ import java.util.concurrent.TimeoutException;
 
 public class Main {
 
-    public static int N = 100;
-    public static float alpha = 0.1f;
-    public static int TLE = 1000;
-    public static int f = 49;
-    public static boolean debug = false;
+    public static int N;
+    public static float alpha;
+    public static int TLE;
+    public static int f;
+    public static boolean debug;
 
     public static void main(String[] args) throws InterruptedException, TimeoutException {
+        if (args.length >= 3) {
+            try {
+                N = Integer.parseInt(args[0]);
+                alpha = Float.parseFloat(args[1]);
+                TLE = Integer.parseInt(args[2]);
+                f = N%2 == 0 ? N / 2 - 1: N/2;
+                if (args.length >= 4) {
+                    debug = Boolean.parseBoolean(args[3]);
+                } else {
+                    debug = false;
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("Invalid input. Usage 'Main N:int alpha:float Tle:int [debug:boolean = false]'");
+                System.exit(1);
+            }
+        } else {
+            System.err.println("Insufficient arguments. Please provide 3 arguments. Usage 'Main N:int alpha:float Tle:int [debug = true]'");
+            System.exit(1);
+        }
+        
+        if (alpha < 0. || alpha > 1.) {
+            System.err.println("Invalid input. Use 0 <= alpha <= 1. Value entered: " + alpha);
+            System.exit(1);
+        }
+
+
         // Instantiate an actor system
         final ActorSystem system = ActorSystem.create("system");
         system.log().info("System started");
@@ -61,11 +87,6 @@ public class Main {
         ActorRef leader = processes.get(0);
         System.out.println("The leader is process " + leader.path().toString());
 
-        // Crash the f last processes
-        for (int j = N - f; j < N; j++) {
-            processes.get(j).tell(new Crash(), ActorRef.noSender());
-        }
-
         // Send a hold message in tle to all processes except the leader
         // We start at j = 1 because the leader is the first process
         // Sending a message to the leader for logs
@@ -73,6 +94,13 @@ public class Main {
         for (int j = 1; j < N; j++) {
             system.scheduler().scheduleOnce(Duration.create(TLE, TimeUnit.MILLISECONDS), processes.get(j), new Hold(), system.dispatcher(), null);
         }
+
+        // Crash the f last processes
+        for (int j = N - f; j < N; j++) {
+            processes.get(j).tell(new Crash(), ActorRef.noSender());
+        }
+
+
 
         // Send Launch message to all processes
         for (ActorRef actor : processes) {

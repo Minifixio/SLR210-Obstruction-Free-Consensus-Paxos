@@ -16,4 +16,8 @@
 
 - Do the data gathering on the same computer!!!!
 
+to run the project, use the following command with the correct values of N alpha and TLE
+mvn exec:exec -Dexec.executable="java" -Dexec.args="-classpath %classpath com.example.synod.Main N alpha TLE"
+
+
 

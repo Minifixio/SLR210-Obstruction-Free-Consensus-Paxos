@@ -218,7 +218,8 @@ public class Process extends UntypedAbstractActor {
 
     private void receiveLaunch() {
         if (debug)
-            log.info(this + " - launch received");
+            log.info(this + " - launch received " + (System.currentTimeMillis() - initTime));
+            log.info(this + " - launch received " + (System.currentTimeMillis() - initTime));
         // pick a random value and propose it
         Random rand = new Random();
         Boolean v = rand.nextBoolean();
@@ -234,7 +235,8 @@ public class Process extends UntypedAbstractActor {
     }
 
     private void handleLeader() {
-        log.info(this + " - Leader chosen in " + (System.currentTimeMillis() - initTime) + "ms");
+        if (debug)
+            log.info(this + " - Leader chosen in " + (System.currentTimeMillis() - initTime) + "ms");
     }
 
     public void onReceive(Object message) throws Throwable {
