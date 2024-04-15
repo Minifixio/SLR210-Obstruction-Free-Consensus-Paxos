@@ -8,15 +8,7 @@ import com.example.synod.message.*;
 import scala.concurrent.duration.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-/**
- * TODO :
- * - Automatiser l'execution
- * - Ecrire le readme
- * - Faire le rapport
- */
- 
+import java.util.concurrent.TimeoutException; 
 
 public class Main {
 
