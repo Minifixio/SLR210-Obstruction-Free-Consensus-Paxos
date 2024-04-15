@@ -17,10 +17,11 @@ def run_cmd_and_get_time(N, alpha, TLE):
             print(f"Time to decide: {time_to_decide}")
             return time_to_decide
         else:
-            return None, None
+            print(output)
+            return None
     except subprocess.CalledProcessError as e:
         print("Error running command:", e.output)
-        return None, None
+        return None
 
 # Values for the test
 N_values = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
@@ -38,19 +39,24 @@ file_name = sys.argv[1]
 df = pd.DataFrame(columns=['N', 'Alpha', 'Tle', 'Execution Time'])
 data_types = {'N': int, 'Alpha': float, 'Tle': int, 'Execution Time': int}
 
-# Store the values to 
+# Count failures (0 expected ^^)
+failures = 0
 
 for N in N_values:
     for alpha in alpha_values:
         for TLE in TLE_values:
-            time_to_decide = run_cmd_and_get_time(N, alpha, TLE)
-            if time_to_decide is not None:
-                df = df.append({'N': N, 'Alpha': alpha, 'Tle': TLE, 'Execution Time': time_to_decide}, ignore_index=True)
-            else:
-                print("Could not extract decision and time to decide.")
+            for _ in range(5):
+                time_to_decide = run_cmd_and_get_time(N, alpha, TLE)
+                if time_to_decide is not None:
+                    df = df.append({'N': N, 'Alpha': alpha, 'Tle': TLE, 'Execution Time': time_to_decide}, ignore_index=True)
+                else:
+                    print("Could not extract decision and time to decide.")
+                    failures += 1
 
 # Apply data types to DataFrame
 df = df.astype(data_types)
+
+print(failures)
 
 # Save the data frame to a csv file
 df.to_csv(file_name, index=False)

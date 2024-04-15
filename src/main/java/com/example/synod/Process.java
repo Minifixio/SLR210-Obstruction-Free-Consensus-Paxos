@@ -193,8 +193,8 @@ public class Process extends UntypedAbstractActor {
         decided = true;
 
         broadcast(message);
-        if (debug)
             log.info(this + " - decided " + message.getProposal() + " in " + (System.currentTimeMillis() - initTime) + "ms");
+            if (!debug) System.exit(0);
     }
 
     private void receiveAck(Ack message) {
@@ -213,8 +213,8 @@ public class Process extends UntypedAbstractActor {
 
             // Stopping the execution after the first process decide, the others will decide the same value after deciding the "decide" message
             // Run the code in debug mode to see the full execution
-            if (!debug) System.exit(0);
-            
+            context().system().terminate();
+
             Decide decide = new Decide(proposal);
             broadcast(decide);
         }
